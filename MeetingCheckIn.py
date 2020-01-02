@@ -412,14 +412,14 @@ class CheckInScreen(Screen):
     def updateTitle(self, title):
         self.parent.parent.ids.title.text = title
 
-class MeetingSignInApp(App):
+class MeetingCheckInApp(App):
     def on_stop(self, *args):
         hms.stopRFID()
 
 if __name__ == "__main__":
     Window.size = (800, 480)
     try:
-        MeetingSignInApp().run()
+        MeetingCheckInApp().run()
     except KeyboardInterrupt:
         hms.stopRFID()
         MeetingSignInApp().stop()
