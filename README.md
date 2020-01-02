@@ -1,11 +1,33 @@
 # hms-meetings
 This is kivy based sign-in tool for Nottingham Hackspace AGM's and EGM's
 
-This has been designed to run on a Raspberry Pi (using kivypie) with an offical 7" touch screen and an attqached RC522 RFID reader
+This has been designed to run on a Raspberry Pi (using kivypie) with an official 7" touch screen and an attached RC522 RFID reader
 
 ## Requrments
-Kivy Pi os install
-http://kivypie.mitako.eu
+Kivy Pi OS install
+ http://kivypie.mitako.eu
 
 pi-rc522 python library
-https://github.com/kevinvalk/pi-rc522.git
+ https://github.com/kevinvalk/pi-rc522.git
+
+## Client Credentials
+Client Credentials can be generated with
+```
+php artisan passport:client --client
+```
+
+## Testing not on a pi
+This will run on any device with kivy installed, when pi-rc522 library is not available it will listen for UDP broadcast on port 7861 for RFID string packets
+
+There is a quick script `sendRfid.py` which takes a rfid serial as a command line arg and will broadcast it onto the network
+
+## Testing on a pi
+If you need to expose the HMS dev vagrant to you public network add
+```
+  config.vm.network "public_network", bridge: "en0: Wi-Fi (AirPort)"
+```
+to your VAGRANT file, updating the bridge: field as needed.
+
+Then `vagrant reload` to restart the box with new setting.
+Once the box is up, you can add its IP to the hosts file on the Pi
+

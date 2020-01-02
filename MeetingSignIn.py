@@ -3,7 +3,7 @@
 """ HMS Meeting Sign-In
 
   Requirements
-  pi-rc522
+  pi-rc522 (https://github.com/kevinvalk/pi-rc522.git)
 
   Author: Matt Lloyd
   Copyright (c) 2019 Nottingham Hackspace
