@@ -153,7 +153,7 @@ class HMS():
     _tokenURL = '{baseURL}/oauth/token'
     _meetingNextURL = '{baseURL}/api/client/governance/meeting/next'
     _meetingURL = '{baseURL}/api/client/governance/meeting/{meeting}'
-    _meetingCheckInRfidURL = '{baseURL}/api/client/governance/meeting/{meeting}/checkInRfid'
+    _meetingCheckInRfidURL = '{baseURL}/api/client/governance/meeting/{meeting}/check-in-rfid'
 
     _token = []
     _meetinId = None
