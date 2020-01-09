@@ -151,9 +151,9 @@ class HMS():
     _baseURLDev = 'https://hmsdev'
     _baseURLProd = 'https://lspace.nottinghack.org.uk'
     _tokenURL = '{baseURL}/oauth/token'
-    _meetingNextURL = '{baseURL}/api/client/governance/meeting/next'
-    _meetingURL = '{baseURL}/api/client/governance/meeting/{meeting}'
-    _meetingCheckInRfidURL = '{baseURL}/api/client/governance/meeting/{meeting}/check-in-rfid'
+    _meetingNextURL = '{baseURL}/api/cc/governance/meetings/next'
+    _meetingURL = '{baseURL}/api/cc/governance/meetings/{meeting}'
+    _meetingCheckInRfidURL = '{baseURL}/api/cc/governance/meetings/{meeting}/check-in-rfid'
 
     _token = []
     _meetinId = None
