@@ -1,11 +1,11 @@
 [Unit]
-Description=nh-meeting: Kivy based AGM RFID check-in 
+Description=nh-meeting: Kivy based AGM RFID check-in
 After=multi-user.target
 
 [Service]
 Type=idle
 WorkingDirectory=/home/sysop/github/hms-meetings
-ExecStart=/usr/bin/python /home/sysop/github/hms-meetings/MeetingCheckIn.py
+ExecStart=/usr/bin/python3 /home/sysop/github/hms-meetings/MeetingCheckIn.py
 User=sysop
 Restart=always
 

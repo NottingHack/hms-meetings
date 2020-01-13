@@ -1,8 +1,8 @@
-#!/usr/bin/env kivy2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """ HMS Meeting Sign-In
 
-  Requirements
+  Requirements (pi only)
   pi-rc522 (https://github.com/kevinvalk/pi-rc522.git)
 
   Author: Matt Lloyd
@@ -37,21 +37,23 @@ from kivy.core.window           import Window
 from kivy.properties            import ObjectProperty, StringProperty, BooleanProperty
 
 from binascii import hexlify
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import time
-import Queue
+import queue
 import threading
 import socket
 import select
+import json
 
 class RFID():
     _reader = False
     _listenPort = 7861
     _UDPListenTimeout = 2   # timeout for UDP listen
+    _readTimeout = 10 # allow read of same card after 10 seconds
 
     def __init__(self):
         self.tRFIDStop = threading.Event()
-        self.qRFID = Queue.Queue()
+        self.qRFID = queue.Queue()
         try:
             global pirc522
             import pirc522 as pirc522
@@ -82,8 +84,13 @@ class RFID():
         """
         print("tRC522read: Thread started")
         lastUid = None
-
+        lastReadTime = 0
         while (not self.tRFIDStop.is_set()):
+            # clear last read if it was a while ago
+            if ((time.time() - lastReadTime)) > self._readTimeout:
+                lastReadTime = time.time()
+                lastUid = None
+
             uid = self._reader.read_id()
             if uid is not None:
                 uidNumber = hexlify(bytearray(uid))
@@ -91,7 +98,7 @@ class RFID():
                     lastUid = uidNumber
                     try:
                         self.qRFID.put_nowait(uidNumber)
-                    except Queue.Full:
+                    except queue.Full:
                         print("tRC522read: Failed to put {} on qRFID as it's full".format(uidNumber))
 
             self.tRFIDStop.wait(0.1)
@@ -127,11 +134,17 @@ class RFID():
             if datawaiting[0]:
                 (uidNumber, address) = UDPListenSocket.recvfrom(8192)
                 print("tUDPListen: Received: {} From: {}".format(uidNumber, address))
+
+                # clear last read if it was a while ago
+                if (time.time() - lastReadTime) > self._readTimeout:
+                    lastReadTime = time.time()
+                    lastUid = None
+
                 if lastUid != uidNumber:
                     lastUid = uidNumber
                     try:
                         self.qRFID.put_nowait(uidNumber)
-                    except Queue.Full:
+                    except queue.Full:
                         print("{}: Failed to put {} on qRFID as it's full".format(self.tThread.name, uidNumber))
 
         print("tUDPListen: Thread stopping")
@@ -168,7 +181,7 @@ class HMS():
     def getToken(self, success, fail):
         self._tokenSuccessCallback = success
         self._tokenFailCallback = fail
-        params = urllib.urlencode({
+        params = urllib.parse.urlencode({
             'grant_type': 'client_credentials',
             'client_id': self.connecScreen.clientId.text,
             'client_secret': self.connecScreen.clientSecret.text
@@ -188,6 +201,7 @@ class HMS():
             on_redirect = None,
             on_success  = self.gotToken,
             timeout     = 5,
+            verify      = self.production,
             )
 
     def gotToken(self, request, result):
@@ -202,7 +216,7 @@ class HMS():
         print('HMS: Find next meeting')
 
         headers = {
-            'Content-type': 'application/x-www-form-urlencoded',
+            'Content-type': 'application/json',
             'Accept': 'application/json',
             'Authorization': '{} {}'.format(self._token['token_type'], self._token['access_token'])
             }
@@ -217,6 +231,7 @@ class HMS():
             on_redirect = None,
             on_success  = self.foundNext,
             timeout     = 5,
+            verify      = self.production,
             )
 
     def foundNext(self, request, result):
@@ -258,7 +273,7 @@ class HMS():
 
     def updateCounts(self, *args):
         headers = {
-          'Content-type': 'application/x-www-form-urlencoded',
+          'Content-type': 'application/json',
           'Accept': 'application/json',
           'Authorization': '{} {}'.format(self._token['token_type'], self._token['access_token'])
           }
@@ -273,6 +288,7 @@ class HMS():
             on_redirect = None,
             on_success  = self.newCounts,
             timeout     = 5,
+            verify      = self.production,
             )
 
     def newCounts(self, request, result):
@@ -281,15 +297,15 @@ class HMS():
     def checkForRFID(self, *args):
         try:
             uid = self.rfid.qRFID.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             pass
         else:
             self.checkInScreen.statusMessage = 'Checking Card'
-            params = urllib.urlencode({
-                'rfidSerial': uid,
+            params = json.dumps({
+                'rfidSerial': uid.decode("utf-8"),
                 })
             headers = {
-                'Content-type': 'application/x-www-form-urlencoded',
+                'Content-type': 'application/json',
                 'Accept': 'application/json',
                 'Authorization': '{} {}'.format(self._token['token_type'], self._token['access_token'])
                 }
@@ -304,6 +320,7 @@ class HMS():
                 on_redirect = self.checkInRedirect,
                 on_success  = self.checkInSuccess,
                 timeout     = 5,
+                verify      = self.production,
                 )
 
     def checkInError(self, request, result):

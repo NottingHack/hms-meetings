@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """ HMS Meeting Sign-In UPD RFID Sender
 
@@ -46,21 +46,21 @@ if len(sys.argv) == 1:
     print("You need to speficy a UID to send")
     sys.exit()
 
-uid = sys.argv[1]
+uid = sys.argv[1].encode()
 
 try:
-    sock.sendto(uid, ('<broadcast>', TO_PORT))
+    sock.sendto(uid, ("<broadcast>", TO_PORT))
 except socket.error as msg:
-    if msg[0] == 101:
+    if msg[0] == 49 or msg[0] == 101:
         try:
             sock.sendto(uid, ('127.0.0.255', TO_PORT))
         except socket.error as msg:
-            print("Failed to send, Error code : {} Message: {}".format(msg[0], msg[1]))
+            print("Failed to send 127, Error code : {} Message: {}".format(msg[0], msg[1]))
         else:
-            print("Sent: {}".format(uid))
+            print("Sent 127: {}".format(uid))
     else:
-        print("Failed to send, Error code : {} Message: {}".format(msg[0], msg[1]))
+        print("Failed to send broadcast, Error code : {} Message: {}".format(msg[0], msg[1]))
 else:
-    print("Sent: {}".format(uid))
+    print("Sent broadcast: {}".format(uid))
 
 sock.close()
