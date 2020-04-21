@@ -421,13 +421,13 @@ class CheckInScreen(Screen):
         hms.checkInScreen = self
 
     def on_enter(self):
-        self.parent.parent.ids.title.text = 'Finding Next Meeting'
+        self.manager.parent.ids.title.text = 'Finding Next Meeting'
 
     def on_leave(self):
         hms.stopRFID()
 
     def updateTitle(self, title):
-        self.parent.parent.ids.title.text = title
+        self.manager.parent.ids.title.text = title
 
 class MeetingCheckInApp(App):
     def on_stop(self, *args):
@@ -439,4 +439,4 @@ if __name__ == "__main__":
         MeetingCheckInApp().run()
     except KeyboardInterrupt:
         hms.stopRFID()
-        MeetingSignInApp().stop()
+        MeetingCheckInApp().stop()
